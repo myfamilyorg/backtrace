@@ -1,0 +1,4 @@
+[crate]
+	bin = "backtrace"
+[deps]
+	ffi = { path = "../ffi" }
