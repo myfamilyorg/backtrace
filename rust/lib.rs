@@ -28,7 +28,7 @@ impl Debug for Backtrace {
                 let slice = from_raw_parts(bt, len as usize);
                 from_utf8_unchecked(slice)
             };
-            match write!(f, "{}", s) {
+            match write!(f, " {}", s) {
                 Ok(_) => {
                     ffi::release(bt);
                     Ok(())
