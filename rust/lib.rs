@@ -1,11 +1,10 @@
 #![no_std]
 
-extern crate ffi;
+pub extern crate ffi;
 
 use core::ptr::{null, null_mut};
 use ffi::{backtrace, gen_backtrace, getenv};
 pub const MAX_BACKTRACE_ENTRIES: usize = 128;
-pub use ffi;
 
 #[repr(C)]
 #[derive(Clone)]
