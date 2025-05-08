@@ -15,10 +15,7 @@ pub struct Backtrace {
 
 impl Backtrace {
     pub fn new() -> Self {
-        let mut ret = Backtrace {
-            entries: [null_mut(); MAX_BACKTRACE_ENTRIES],
-            size: 0,
-        };
+        let mut ret = Self::init();
         ret.capture();
         ret
     }
@@ -48,14 +45,4 @@ impl Backtrace {
             unsafe { gen_backtrace(self.entries.as_ptr(), self.size) }
         }
     }
-}
-
-pub fn backtrace_fn() -> i32 {
-    ffi::ffi_fn()
-}
-
-pub fn real_main(_argc: i32, _argv: *const *const i8) -> i32 {
-    let mut bt = Backtrace::new();
-    bt.capture();
-    ffi::ffi_fn()
 }
