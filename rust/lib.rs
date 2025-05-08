@@ -5,7 +5,7 @@ use core::fmt::Result as FmtResult;
 use core::fmt::{Debug, Formatter};
 use core::ptr::{null, null_mut};
 use core::slice::from_raw_parts;
-use core::str::from_utf8;
+use core::str::from_utf8_unchecked;
 use ffi::{backtrace, gen_backtrace, getenv};
 
 pub const MAX_BACKTRACE_ENTRIES: usize = 128;
@@ -26,10 +26,11 @@ impl Debug for Backtrace {
             } else {
                 let len = ffi::cstring_len(bt);
                 let slice = from_raw_parts(bt, len as usize);
-                from_utf8(slice).unwrap()
+                from_utf8_unchecked(slice)
             };
+            write!(f, "{}", s);
             ffi::release(bt);
-            write!(f, "{}", s)?;
+            //write!(f, "{}", s)?;
         }
 
         Ok(())
@@ -68,4 +69,26 @@ impl Backtrace {
             unsafe { gen_backtrace(self.entries.as_ptr(), self.size) }
         }
     }
+}
+
+extern "C" {
+    fn write(fd: i32, ptr: *const u8, len: usize) -> i32;
+}
+
+pub fn real_main(argc: i32, argv: *const *const i8) -> i32 {
+    let bt = Backtrace::new();
+    unsafe {
+        write(2, "x\n".as_ptr(), 2);
+    }
+    for i in 0..bt.size {
+        unsafe {
+            write(2, "v\n".as_ptr(), 2);
+            for j in 0..ffi::cstring_len(bt.entries[i as usize] as *const u8) {
+                let b = &[bt.entries[j as usize]];
+                write(2, b.as_ptr() as *const u8, 1);
+            }
+            write(2, "\n".as_ptr(), 1);
+        }
+    }
+    0
 }

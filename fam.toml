@@ -1,4 +1,4 @@
 [crate]
-	lib = "backtrace"
+	bin = "backtrace"
 [deps]
 	ffi = { git = "https://github.com/myfamilyorg/ffi" }
