@@ -28,12 +28,18 @@ impl Debug for Backtrace {
                 let slice = from_raw_parts(bt, len as usize);
                 from_utf8_unchecked(slice)
             };
-            write!(f, "{}", s);
-            ffi::release(bt);
-            //write!(f, "{}", s)?;
-        }
+            match write!(f, "{}", s) {
+                Ok(_) => {
+                    ffi::release(bt);
+                    Ok(())
+                }
 
-        Ok(())
+                Err(e) => {
+                    ffi::release(bt);
+                    Err(e)
+                }
+            }
+        }
     }
 }
 
@@ -69,26 +75,4 @@ impl Backtrace {
             unsafe { gen_backtrace(self.entries.as_ptr(), self.size) }
         }
     }
-}
-
-extern "C" {
-    fn write(fd: i32, ptr: *const u8, len: usize) -> i32;
-}
-
-pub fn real_main(argc: i32, argv: *const *const i8) -> i32 {
-    let bt = Backtrace::new();
-    unsafe {
-        write(2, "x\n".as_ptr(), 2);
-    }
-    for i in 0..bt.size {
-        unsafe {
-            write(2, "v\n".as_ptr(), 2);
-            for j in 0..ffi::cstring_len(bt.entries[i as usize] as *const u8) {
-                let b = &[bt.entries[j as usize]];
-                write(2, b.as_ptr() as *const u8, 1);
-            }
-            write(2, "\n".as_ptr(), 1);
-        }
-    }
-    0
 }
