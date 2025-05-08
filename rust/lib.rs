@@ -1,7 +1,11 @@
 #![no_std]
 
 extern crate ffi;
+use core::fmt::Result as FmtResult;
+use core::fmt::{Debug, Formatter};
 use core::ptr::{null, null_mut};
+use core::slice::from_raw_parts;
+use core::str::from_utf8;
 use ffi::{backtrace, gen_backtrace, getenv};
 
 pub const MAX_BACKTRACE_ENTRIES: usize = 128;
@@ -11,6 +15,25 @@ pub const MAX_BACKTRACE_ENTRIES: usize = 128;
 pub struct Backtrace {
     entries: [*mut (); MAX_BACKTRACE_ENTRIES],
     size: i32,
+}
+
+impl Debug for Backtrace {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        unsafe {
+            let bt = self.as_ptr();
+            let s = if bt.is_null() {
+                "Backtrace disabled. To enable export RUST_BACKTRACE=1."
+            } else {
+                let len = ffi::cstring_len(bt);
+                let slice = from_raw_parts(bt, len as usize);
+                from_utf8(slice).unwrap()
+            };
+            ffi::release(bt);
+            write!(f, "{}", s)?;
+        }
+
+        Ok(())
+    }
 }
 
 impl Backtrace {
