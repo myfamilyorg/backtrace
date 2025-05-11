@@ -46,3 +46,28 @@ impl Backtrace {
         }
     }
 }
+
+pub fn real_main(_argc: i32, _argv: *const *const i8) -> i32 {
+    unsafe {
+        let x = ffi::alloc(1);
+        ffi::release(x);
+    }
+    0
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_backtrace1() {
+        let bt = Backtrace::new();
+        let ptr = unsafe { bt.as_ptr() };
+        if !ptr.is_null() {
+            unsafe {
+                ffi::release(ptr);
+            }
+        }
+        assert_eq!(1, 1);
+    }
+}
