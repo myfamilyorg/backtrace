@@ -49,10 +49,11 @@ impl Backtrace {
 
 pub fn real_main(_argc: i32, _argv: *const *const i8) -> i32 {
     unsafe {
+        ffi::write(2, "test\n".as_ptr(), 5);
         let x = ffi::alloc(1);
         ffi::release(x);
     }
-    0
+    9
 }
 
 #[cfg(test)]
@@ -63,9 +64,18 @@ mod test {
     fn test_backtrace1() {
         let bt = Backtrace::new();
         let ptr = unsafe { bt.as_ptr() };
+        unsafe {
+            ffi::write(2, "bt test\n".as_ptr(), 8);
+        }
         if !ptr.is_null() {
             unsafe {
+                let len = ffi::cstring_len(ptr);
+                ffi::write(2, ptr, len as usize);
                 ffi::release(ptr);
+            }
+        } else {
+            unsafe {
+                ffi::write(2, "bt null\n".as_ptr(), 8);
             }
         }
         assert_eq!(1, 1);
